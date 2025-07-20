@@ -1,0 +1,190 @@
+1. Concatenación de columnas
+
+Medida para concatenar TUCOLUMNA de TUTABLA, con separación por coma:
+
+UBICACION = [TUCOLUMNA] & ", " & [TUCOLUMNA]
+
+
+2. Mes a partir de "TUCOLUMNA"
+
+Medida para extraer el mes a partir de la columna TUCOLUMNA, donde se utiliza la primera parte del texto (primeros tres caracteres) para determinar el mes:
+
+MES = 
+    SWITCH(TRUE(),
+        LEFT(UPPER([TUCOLUMNA]), 3) = "ENE", 1,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "FEB", 2,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "MAR", 3,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "ABR", 4,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "MAY", 5,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "JUN", 6,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "JUL", 7,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "AGO", 8,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "SEP", 9,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "OCT", 10,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "NOV", 11,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "DIC", 12,
+        BLANK()
+    )
+
+
+3. Columna de fecha a partir del mes y año
+
+Medida para crear una fecha a partir del mes y año de la columna TUCOLUMNA (extrayendo el mes de la cadena de texto y añadiendo el primer día de dicho mes):
+
+Fecha = 
+VAR MesTexto = LEFT(UPPER([TUCOLUMNA]), 3)
+VAR AnioTexto = RIGHT([TUCOLUMNA], 4)
+VAR MesNumero = 
+    SWITCH(TRUE(),
+        MesTexto = "ENE", 1,
+        MesTexto = "FEB", 2,
+        MesTexto = "MAR", 3,
+        MesTexto = "ABR", 4,
+        MesTexto = "MAY", 5,
+        MesTexto = "JUN", 6,
+        MesTexto = "JUL", 7,
+        MesTexto = "AGO", 8,
+        MesTexto = "SEP", 9,
+        MesTexto = "OCT", 10,
+        MesTexto = "NOV", 11,
+        MesTexto = "DIC", 12,
+        BLANK()
+    )
+RETURN
+    DATE( VALUE(AnioTexto), MesNumero, 1 )
+
+
+4. Filtro de fecha entre dos rangos (ejemplo de medida)
+
+Si quieres medir un valor entre un rango de fechas (por ejemplo, ventas entre enero y febrero):
+
+Ventas_Rango_Fecha = 
+    CALCULATE(
+        SUM(TUTABLA[TUCOLUMNA]),
+        TUTABLA[TUCOLUMNA] >= DATE(2024, 1, 1) && TUTABLA[TUCOLUMNA] <= DATE(2024, 2, 29)
+    )
+
+
+5. Medida de porcentaje de cambio entre dos valores
+
+Para medir el cambio porcentual entre dos periodos (por ejemplo, ventas comparadas entre el año actual y el anterior):
+
+Cambio_Porcentual_Ventas = 
+    VAR VentasActual = SUM(TUTABLA[TUCOLUMNA])
+    VAR VentasAnterior = CALCULATE(SUM(TUTABLA[TUCOLUMNA]), SAMEPERIODLASTYEAR(TUTABLA[TUCOLUMNA]))
+RETURN
+    IF(VentasAnterior <> 0, (VentasActual - VentasAnterior) / VentasAnterior, BLANK())
+
+
+6. Medida para contar valores no nulos
+
+Contar el número de registros en los cuales un campo específico no es nulo:
+
+Conteo_No_Nulos = 
+    COUNTAX(
+        FILTER(TUTABLA, NOT(ISBLANK(TUTABLA[TUCOLUMNA]))),
+        TUTABLA[TUCOLUMNA]
+    )
+
+
+7. Medida de total acumulado
+
+Total acumulado de un valor numérico, como las ventas, en el transcurso del tiempo:
+
+Ventas_Acumuladas = 
+    CALCULATE(
+        SUM(TUTABLA[TUCOLUMNA]),
+        FILTER(
+            ALLSELECTED(TUTABLA[TUCOLUMNA]),
+            TUTABLA[TUCOLUMNA] <= MAX(TUTABLA[TUCOLUMNA])
+        )
+    )
+
+
+8. Medida para crear un ranking de productos según ventas
+
+Clasificar los productos según su volumen de ventas:
+
+Ranking_Producto = 
+    RANKX(
+        ALL(TUTABLA),
+        SUM(TUTABLA[TUCOLUMNA]),
+        , 
+        DESC, 
+        Dense
+    )
+
+9. Media para crear calendario y extraer datos fechas
+
+
+MES = 
+    SWITCH(TRUE(),
+        LEFT(UPPER([TUCOLUMNA]), 3) = "ENE", 1,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "FEB", 2,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "MAR", 3,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "ABR", 4,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "MAY", 5,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "JUN", 6,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "JUL", 7,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "AGO", 8,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "SEP", 9,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "OCT", 10,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "NOV", 11,
+        LEFT(UPPER([TUCOLUMNA]), 3) = "DIC", 12,
+        BLANK()
+    )
+
+Mes_Nombre = 
+    SWITCH([MES],
+        1, "Enero",
+        2, "Febrero",
+        3, "Marzo",
+        4, "Abril",
+        5, "Mayo",
+        6, "Junio",
+        7, "Julio",
+        8, "Agosto",
+        9, "Septiembre",
+        10, "Octubre",
+        11, "Noviembre",
+        12, "Diciembre",
+        BLANK()
+    )
+
+
+-- COLUMNAS PERSONALIZADAS EN POWER QUERY --
+
+// Extraer número de mes a partir de texto
+= if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "ENE" then 1 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "FEB" then 2 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "MAR" then 3 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "ABR" then 4 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "MAY" then 5 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "JUN" then 6 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "JUL" then 7 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "AGO" then 8 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "SEP" then 9 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "OCT" then 10 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "NOV" then 11 else 
+  if Text.Upper(Text.Start([TUCOLUMNA], 3)) = "DIC" then 12 else null
+
+// Obtener nombre del mes a partir del número en [MES]
+= if [MES] = 1 then "Enero"
+  else if [MES] = 2 then "Febrero"
+  else if [MES] = 3 then "Marzo"
+  else if [MES] = 4 then "Abril"
+  else if [MES] = 5 then "Mayo"
+  else if [MES] = 6 then "Junio"
+  else if [MES] = 7 then "Julio"
+  else if [MES] = 8 then "Agosto"
+  else if [MES] = 9 then "Septiembre"
+  else if [MES] = 10 then "Octubre"
+  else if [MES] = 11 then "Noviembre"
+  else if [MES] = 12 then "Diciembre"
+  else null
+
+// Extraer año desde columna tipo fecha
+= Date.Year([TUCOLUMNA])
+
+// Extraer año si la fecha está en texto
+= Text.End([TUCOLUMNA], 4)
